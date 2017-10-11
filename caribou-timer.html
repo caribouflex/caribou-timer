@@ -1,0 +1,36 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="caribou-timer">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * `caribou-timer`
+     * Timer element - android style
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class CaribouTimer extends Polymer.Element {
+      static get is() { return 'caribou-timer'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'caribou-timer'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(CaribouTimer.is, CaribouTimer);
+  </script>
+</dom-module>

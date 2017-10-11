@@ -1,36 +1,518 @@
 <link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="bower_components/iron-input/iron-input.html">
+<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="custom-icons.html">
 
 <dom-module id="caribou-timer">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <h2>Hello [[prop1]]!</h2>
-  </template>
+    <template>
+        <style>
+             :host {
+                display: block;
+            }
 
-  <script>
-    /**
-     * `caribou-timer`
-     * Timer element - android style
-     *
-     * @customElement
-     * @polymer
-     * @demo demo/index.html
-     */
-    class CaribouTimer extends Polymer.Element {
-      static get is() { return 'caribou-timer'; }
-      static get properties() {
-        return {
-          prop1: {
-            type: String,
-            value: 'caribou-timer'
-          }
-        };
-      }
-    }
+            button[data-setter] {
+                outline: none;
+                background: transparent;
+                border: none;
+                font-family: 'Roboto';
+                font-weight: 300;
+                font-size: 18px;
+                width: 25px;
+                height: 30px;
+                color: #64B5F6;
+                cursor: pointer;
+            }
 
-    window.customElements.define(CaribouTimer.is, CaribouTimer);
-  </script>
+            button[data-setter]:hover {
+                opacity: 0.5;
+            }
+
+            .container {
+                position: relative;
+                top: 30px;
+                width: 300px;
+                margin: 0 auto;
+            }
+
+            .setters {
+                position: absolute;
+                left: 50px;
+                top: 75px;
+            }
+
+            .minutesSet,
+            .hoursSet {
+                float: left;
+                margin-right: 22px;
+            }
+
+            .secondsSet {
+                float: right;
+            }
+
+            .controlls {
+                position: absolute;
+                left: 50px;
+                top: 100px;
+                text-align: center;
+            }
+
+            #pause {
+                margin-top: 10px;
+            }
+
+            #pause:hover {
+                opacity: 0.8;
+            }
+
+            .eCBase {
+                fill: none;
+                stroke: #B6B6B6;
+                stroke-width: 4px
+            }
+
+            .eCProgress {
+                fill: none;
+                stroke: #64B5F6;
+                stroke-width: 4px;
+                transition: stroke-dashoffset 1s linear;
+            }
+
+            .eCPointer {
+                fill: #FFF;
+                stroke: #64B5F6;
+                stroke-width: 2px;
+            }
+
+            #ePointer {
+                transition: transform 1s linear;
+            }
+
+            #buttonGroup {
+                width: 206px;
+            }
+
+            .displayRemainTime,
+            #inputTimeGroup {
+                @apply --layout-horizontal;
+            }
+
+            .displayRemainTime {
+                font-weight: 100;
+                font-size: 45px;
+                color: #64B5F6;
+            }
+
+            #inputTimeGroup p,
+            .displayRemainTime p {
+                font-weight: 100;
+                font-size: 30px;
+                color: #64B5F6;
+                margin: auto;
+            }
+
+            #pause {
+                color: #64B5F6;
+                --paper-icon-button: {
+                    width: 60px;
+                    height: 60px;
+                }
+            }
+
+            input.timeInput {
+                width: 55px;
+                font-weight: 100;
+                font-size: 45px;
+                color: #64B5F6;
+                border: none;
+                outline: none;
+                @apply --paper-font-common-base;
+            }
+
+            input.timeInput::-webkit-outer-spin-button,
+            input.timeInput::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+        </style>
+        <h2>Hello [[prop1]]!</h2>
+
+        <div class="container">
+            <div class="setters">
+                <div class="hoursSet">
+                    <button id="hrPlus" disabled$="[[isStarted]]" on-click="changeTime" data-setter="hours-plus">+</button>
+                    <button id="hrMinus" disabled$="[[isStarted]]" on-click="changeTime" data-setter="hours-minus">-</button>
+                </div>
+                <div class="minutesSet">
+                    <button id="minPlus" disabled$="[[isStarted]]" on-click="changeTime" data-setter="minutes-plus">+</button>
+                    <button id="minMinus" disabled$="[[isStarted]]" on-click="changeTime" data-setter="minutes-minus">-</button>
+                </div>
+                <div class="secondsSet">
+                    <button id="secPlus" disabled$="[[isStarted]]" on-click="changeTime" data-setter="seconds-plus">+</button>
+                    <button id="secMinus" disabled$="[[isStarted]]" on-click="changeTime" data-setter="seconds-minus">-</button>
+                </div>
+            </div>
+            <div class="circle">
+                <svg width="300" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(110,110)">
+                        <circle r="100" class="eCBase" />
+                        <g transform="rotate(-90)">
+                            <circle r="100" class="eCProgress" />
+                            <g id="ePointer">
+                                <circle cx="100" cy="0" r="8" class="eCPointer" />
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <div class="controlls">
+                <div id="divTimeGroup" class="displayRemainTime" hidden$="[[inputTime]]">
+                    <div id="hour">{{hour}}</div>
+                    <p>:</p>
+                    <div id="min">{{min}}</div>
+                    <p>:</p>
+                    <div id="sec">{{sec}}</div>
+                </div>
+                <div id="inputTimeGroup" hidden$="[[!inputTime]]">
+                    <iron-input bind-value="{{hour}}">
+                        <input is="iron-input" disabled$="[[isStarted]]" class="timeInput" value="{{hour::input}}" min="0" id="hour" type="number" on-change="_recalculWholeTime">
+                    </iron-input>
+                    <p>:</p>
+                    <iron-input bind-value="{{min}}">
+                        <input is="iron-input" disabled$="[[isStarted]]" class="timeInput" value="{{min::input}}" min="0" max="60" id="min" type="number" on-change="_recalculWholeTime">
+                    </iron-input>
+                    <p>:</p>
+                    <iron-input bind-value="{{sec}}">
+                        <input is="iron-input" disabled$="[[isStarted]]" class="timeInput" value="{{sec::input}}" min="0" max="60" id="sec" type="number" on-change="_recalculWholeTime">
+                    </iron-input>
+                </div>
+                <div id="buttonGroup">
+                    <paper-icon-button id="pause" on-click="pauseTimer" icon="custom-icons:{{ternary(isStarted,'pause-circle-filled','play-circle-filled')}}">{{ternary(isStarted,"Stop","Start")}}</paper-icon-button>
+                    <slot></slot>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        /**
+         * `caribou-timer`
+         * Timer element - android style
+         *
+         * @customElement
+         * @polymer
+         * @demo demo/index.html
+         */
+        class CaribouTimer extends Polymer.Element {
+
+            /**
+             * Fired when the timer is stopped
+             *
+             * @event start-timer
+             * @param {Object} detail empty
+             */
+
+            /**
+             * Fired when the timer is started
+             *
+             * @event stop-timer
+             * @param {Object} detail empty
+             */
+
+            /**
+             * Fired when the timer is started
+             *
+             * @event max-time-limit-reached
+             * @param {Object} detail empty
+             */
+
+            /**
+             * Fired when the timer is started
+             *
+             * @event min-time-limit-reached
+             * @param {Object} detail empty
+             */
+
+            static get is() {
+                return 'caribou-timer';
+            }
+            static get properties() {
+                return {
+                    prop1: {
+                        type: String,
+                        value: 'caribou-timer'
+                    },
+
+                    inputTime: {
+                        type: Boolean,
+                        value: false,
+                        observer: "_showTime"
+                    },
+
+                    length: {
+                        type: Number,
+                        value() {
+                            return Math.PI * 2 * 100;
+                        },
+                        readOnly: true
+                    },
+
+                    remainingTime: {
+                        type: Number,
+                        observer: "_resumeTimer"
+                    },
+
+                    maxTimeLimit: Number,
+
+                    minTimeLimit: Number,
+
+                    intervalTimer: Number,
+
+                    timeLeft: Number,
+
+                    wholeTime: {
+                        type: Number,
+                        value() {
+                            return 0.5 * 60;
+                        },
+                        notify: true,
+                        observer: 'displayTimeLeft'
+                    },
+
+                    isPaused: {
+                        type: Boolean,
+                        value: false
+                    },
+
+                    isStarted: {
+                        type: Boolean,
+                        value: false
+                    },
+
+                    /**
+                     * This property is used to indicate if the timer start right after the start button is clicked,
+                     * Or if annother action need to be done to start the timer.
+                     * If true the timer will start after the function is called.
+                     */
+                    waitStartFlag: {
+                        type: Boolean,
+                        value: false
+                    }
+                };
+            }
+
+            ready() {
+                super.ready();
+                this.clearTimer();
+            }
+
+            _showTime(isInput) {
+                if (isInput) {
+                    this.$.inputTimeGroup.style.display = "flex";
+                    this.$.divTimeGroup.style.display = "none";
+                } else {
+                    this.$.divTimeGroup.style.display = "flex";
+                    this.$.inputTimeGroup.style.display = "none";
+                }
+            }
+
+            changeWholeTime(seconds) {
+                if ((this.wholeTime + seconds) > 0) {
+
+                    if (!this._isTimeValid(this.wholeTime + seconds)) {
+                        this.displayTimeLeft(this.wholeTime);
+                        return;
+                    }
+
+                    this.set('wholeTime', this.wholeTime + seconds);
+                    this.update(this.wholeTime, this.wholeTime);
+                }
+            }
+
+            _recalculWholeTime() {
+                var h = Number(this.$.hour.value);
+                var m = Number(this.$.min.value);
+                var s = Number(this.$.sec.value);
+
+                var tot = h * 60 * 60 + m * 60 + s;
+
+                if (!this._isTimeValid(tot)) {
+                    this.displayTimeLeft(this.wholeTime);
+                    return;
+                }
+
+                this.set('wholeTime', tot);
+                this.update(this.wholeTime, this.wholeTime);
+            }
+
+            _isTimeValid(time) {
+
+                //check if a max time is set.
+                //return true (valid) if not
+                if (this.maxTimeLimit !== null && this.maxTimeLimit !== undefined) {
+                    if (time > this.maxTimeLimit) {
+                        this.dispatchEvent(new CustomEvent('max-time-limit-reached', {
+                            bubbles: true,
+                            composed: true
+                        }));
+                        return false;
+                    } else if (time < this.minTimeLimit) {
+                        this.dispatchEvent(new CustomEvent('min-time-limit-reached', {
+                            bubbles: true,
+                            composed: true
+                        }));
+                        return false;
+                    }
+
+                    return true;
+                } else {
+                    return true;
+                }
+            }
+
+            update(value, timePercent) {
+                var offset = -this.length - this.length * value / (timePercent);
+                this.shadowRoot.querySelector(".eCProgress").style.strokeDashoffset = offset;
+                //var v = 360 * value / (timePercent);
+                this.$.ePointer.style.transform = `rotate(${360 * value / (timePercent)}deg)`;
+                //this.$.ePointer.style.transform = "rotate(" + v + "deg)";
+            }
+
+            timer(seconds) { //counts time, takes seconds
+                var remainTime = Date.now() + (seconds * 1000);
+                this.displayTimeLeft(seconds);
+
+                this.intervalTimer = setInterval(function () {
+                    this.timeLeft = Math.round((remainTime - Date.now()) / 1000);
+                    if (this.timeLeft < 0) {
+                        clearInterval(this.intervalTimer);
+                        this.isStarted = false;
+                        this.querySelectorAll('button[data-setter]').forEach(function (btn) {
+                            btn.disabled = false;
+                            btn.style.opacity = 1;
+                        });
+                        this.displayTimeLeft(this.wholeTime);
+                        this._fireEvent("stop");
+                        return;
+                    }
+                    this.displayTimeLeft(this.timeLeft);
+                }.bind(this), 1000);
+            }
+
+            pauseTimer() {
+                if (this.isStarted === false) {
+                    this._fireEvent("start");
+                    if (!this.waitStartFlag)
+                        this.launchTimer();
+                } else {
+                    this._fireEvent("stop");
+                    this.stopTimer();
+                }
+            }
+
+            launchTimer() {
+                this.timer(this.wholeTime);
+                this.isStarted = true;
+
+                this.querySelectorAll('button[data-setter]').forEach(function (btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = 0.5;
+                });
+            }
+
+            displayTimeLeft(timeLeft) { //displays time on the input
+                var realMinutes = Math.floor(timeLeft / 60);
+                var minutes = Math.floor(realMinutes % 60);
+                var hours = Math.floor(realMinutes / 60);
+                var seconds = timeLeft % 60;
+
+                var hS = (hours < 10 ? '0' : '') + hours;
+                var mS = (minutes < 10 ? '0' : '') + minutes;
+                var sS = (seconds < 10 ? '0' : '') + seconds;
+
+                this.set("hour", hS.toString());
+                this.set("min", mS.toString());
+                this.set("sec", sS.toString());
+
+                this.update(timeLeft, this.wholeTime);
+            }
+
+            changeTime(event) {
+                var param = event.currentTarget.dataset.setter;
+                var seconds;
+                switch (param) {
+                    case 'hours-plus':
+                        this.changeWholeTime(1 * 60 * 60);
+                        break;
+                    case 'hours-minus':
+                        this.changeWholeTime(-1 * 60 * 60);
+                        break;
+                    case 'minutes-plus':
+                        this.changeWholeTime(1 * 60);
+                        break;
+                    case 'minutes-minus':
+                        this.changeWholeTime(-1 * 60);
+                        break;
+                    case 'seconds-plus':
+                        this.changeWholeTime(1);
+                        break;
+                    case 'seconds-minus':
+                        this.changeWholeTime(-1);
+                        break;
+                }
+
+                this.displayTimeLeft(this.wholeTime);
+            }
+
+            _resumeTimer(remaining) {
+                this.set("isStarted", true);
+                this.timer(remaining);
+            }
+
+            clearTimer() {
+                this.shadowRoot.querySelector(".eCProgress").style.strokeDasharray = this.length;
+                this.update(this.wholeTime, this.wholeTime);
+                this.displayTimeLeft(this.wholeTime);
+                this.querySelectorAll('button[data-setter]').forEach(function (btn) {
+                    btn.disabled = false;
+                    btn.style.opacity = 1;
+                });
+            }
+
+            _fireEvent(type) {
+                if (type === "start") {
+                    this.dispatchEvent(new CustomEvent('start-timer', {
+                        bubbles: true,
+                        composed: true
+                    }));
+                } else if (type === "stop") {
+                    this.dispatchEvent(new CustomEvent('stop-timer', {
+                        bubbles: true,
+                        composed: true
+                    }));
+                }
+            }
+
+            stopTimer() {
+                this.isStarted = false;
+                clearInterval(this.intervalTimer);
+                this.clearTimer();
+            }
+
+            /**
+             * Used to return the value 'a' or 'b' according to the 's' value.
+             *
+             * @param {boolean} s The boolean value to check
+             * @param {String} a Value returned if true
+             * @param {String} b Value returned if false
+             * @return {String} a or b
+             */
+            ternary(s, a, b) {
+                return s ? a : b
+            }
+
+        }
+
+        window.customElements.define(CaribouTimer.is, CaribouTimer);
+    </script>
 </dom-module>

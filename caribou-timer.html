@@ -269,17 +269,17 @@
                 <div id="inputTimeGroup" hidden$="[[!inputTime]]">
                     <iron-input bind-value="{{hour}}">
                         <input is="iron-input" disabled$="[[isStarted]]" class="timeInput" value="{{hour::input}}" min="0" id="hour" type="number"
-                            on-change="_recalculWholeTime">
+                            on-change="_recalculWholeTime" on-keyup="_recalculWholeTime">
                     </iron-input>
                     <p disabled$="[[isStarted]]">:</p>
                     <iron-input bind-value="{{min}}">
                         <input is="iron-input" disabled$="[[isStarted]]" class="timeInput" value="{{min::input}}" min="0" max="60" id="min" type="number"
-                            on-change="_recalculWholeTime">
+                            on-change="_recalculWholeTime" on-keyup="_recalculWholeTime">
                     </iron-input>
                     <p disabled$="[[isStarted]]">:</p>
                     <iron-input bind-value="{{sec}}">
                         <input is="iron-input" disabled$="[[isStarted]]" class="timeInput" value="{{sec::input}}" min="0" max="60" id="sec" type="number"
-                            on-change="_recalculWholeTime">
+                            on-change="_recalculWholeTime" on-keyup="_recalculWholeTime">
                     </iron-input>
                 </div>
                 <div id="buttonGroup">

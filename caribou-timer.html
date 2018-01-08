@@ -215,6 +215,10 @@
                 -webkit-appearance: none;
                 margin: 0;
             }
+
+            #eCPointer {
+                transition: transform 1s linear;
+            }
         </style>
         <div class="container">
             <div class="setters">
@@ -238,7 +242,7 @@
                         <g transform="rotate(-90)">
                             <circle r="100" class="eCProgress" />
                             <g id="ePointer">
-                                <circle cx="100" cy="0" r="8" class="eCPointer" />
+                                <circle id="eCPointer" cx="100" cy="0" r="8" class="eCPointer" />
                             </g>
                         </g>
                     </g>
@@ -522,9 +526,9 @@
             _update(value, timePercent) {
                 var offset = -this._length - this._length * value / (timePercent);
                 this.shadowRoot.querySelector(".eCProgress").style.strokeDashoffset = offset;
-                this.$.ePointer.style.transform = `rotate(${360 * value / (timePercent)}deg)`;
-                //var v = 360 * value / (timePercent);                
-                //this.$.ePointer.style.transform = "rotate(" + v + "deg)";
+                //this.$.ePointer.style.transform = `rotate(${360 * value / (timePercent)}deg)`;
+                this.$.eCPointer.setAttribute("transform", `rotate(${360 * value / (timePercent)})`);
+                this.$.eCPointer.style.transform = `rotate(${360 * value / (timePercent)}deg)`;
             }
 
             /**
